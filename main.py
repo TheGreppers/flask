@@ -30,6 +30,7 @@ from api.leaderboard import dynamic_api, events_api
 from hacks.joke import joke_api  # Import the joke API blueprint
 from api.post import post_api  # Import the social media post API
 from api.snapshot_proxy import snapshot_proxy
+from api.titanic import titanic_api  # Import the Titanic ML API
 #from api.announcement import announcement_api ##temporary revert
 
 # database Initialization functions
@@ -90,6 +91,7 @@ app.register_blueprint(events_api)  # Register the elementary leaderboard API
 app.register_blueprint(joke_api)  # Register the joke API blueprint
 app.register_blueprint(post_api)  # Register the social media post API
 app.register_blueprint(snapshot_proxy)  # Register the snapshot proxy API
+app.register_blueprint(titanic_api)  # Register the Titanic ML API
 # app.register_blueprint(announcement_api) ##temporary revert
 
 # Jokes file initialization
