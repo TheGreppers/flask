@@ -143,6 +143,19 @@ class SfiSpecAPI:
         image and this returns the most relevant specs ranked by match score.
         """
         def post(self):
+            # ML mode: route through SfiClassifier if ?mode=ml
+            mode = request.args.get('mode', '').strip().lower()
+            if mode == 'ml':
+                from model.sfi_classifier import SfiClassifier
+                data = request.get_json()
+                if not data or 'keywords' not in data:
+                    return {"error": "Missing 'keywords' in request body"}, 400
+                keywords = data['keywords']
+                if isinstance(keywords, list):
+                    keywords = ', '.join(keywords)
+                classifier = SfiClassifier.get_instance()
+                return jsonify(classifier.predict(keywords.strip()))
+
             data = request.get_json()
             if not data or 'keywords' not in data:
                 return {"error": "Missing 'keywords' in request body"}, 400

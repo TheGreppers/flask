@@ -32,6 +32,7 @@ from api.post import post_api  # Import the social media post API
 from api.snapshot_proxy import snapshot_proxy
 from api.titanic import titanic_api  # Import the Titanic ML API
 from api.sfi_spec import sfi_spec_api  # Import the SFI spec search API
+from api.sfi_classifier import sfi_classifier_api  # Import the SFI ML classifier API
 #from api.announcement import announcement_api ##temporary revert
 
 # database Initialization functions
@@ -51,6 +52,7 @@ from model.post import Post, init_posts
 from model.microblog import MicroBlog, Topic, initMicroblogs
 from model.leaderboard import ScoreCounterEvent, ElementaryLeaderboardEvent
 from model.sfi_spec import SfiSpec, initSfiSpecs
+from model.sfi_classifier import SfiClassifier, initSfiClassifier
 from hacks.jokes import initJokes 
 # from model.announcement import Announcement ##temporary revert
 
@@ -95,6 +97,7 @@ app.register_blueprint(post_api)  # Register the social media post API
 app.register_blueprint(snapshot_proxy)  # Register the snapshot proxy API
 app.register_blueprint(titanic_api)  # Register the Titanic ML API
 app.register_blueprint(sfi_spec_api)  # Register the SFI spec search API
+app.register_blueprint(sfi_classifier_api)  # Register the SFI ML classifier API
 # app.register_blueprint(announcement_api) ##temporary revert
 
 # Jokes file initialization
@@ -335,6 +338,7 @@ def generate_data():
     initPersonas()
     initPersonaUsers()
     initSfiSpecs()
+    initSfiClassifier()
 
 # Register the custom command group with the Flask application
 app.cli.add_command(custom_cli)
