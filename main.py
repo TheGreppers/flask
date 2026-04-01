@@ -34,6 +34,7 @@ from api.titanic import titanic_api  # Import the Titanic ML API
 from api.sfi_spec import sfi_spec_api  # Import the SFI spec search API
 from api.sfi_classifier import sfi_classifier_api  # Import the SFI ML classifier API
 from api.sfi_chat import sfi_chat_api  # Import the SFI chatbot API
+from api.user_gear import user_gear_api  # Import the user gear tracking API
 #from api.announcement import announcement_api ##temporary revert
 
 # database Initialization functions
@@ -54,6 +55,7 @@ from model.microblog import MicroBlog, Topic, initMicroblogs
 from model.leaderboard import ScoreCounterEvent, ElementaryLeaderboardEvent
 from model.sfi_spec import SfiSpec, initSfiSpecs
 from model.sfi_classifier import SfiClassifier, initSfiClassifier
+from model.user_gear import UserGear
 from hacks.jokes import initJokes 
 # from model.announcement import Announcement ##temporary revert
 
@@ -100,6 +102,7 @@ app.register_blueprint(titanic_api)  # Register the Titanic ML API
 app.register_blueprint(sfi_spec_api)  # Register the SFI spec search API
 app.register_blueprint(sfi_classifier_api)  # Register the SFI ML classifier API
 app.register_blueprint(sfi_chat_api)  # Register the SFI chatbot API
+app.register_blueprint(user_gear_api)  # Register the user gear tracking API
 # app.register_blueprint(announcement_api) ##temporary revert
 
 # Jokes file initialization

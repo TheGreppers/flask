@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_login import LoginManager
-from flask_cors import CORS
+# CORS is handled by Nginx reverse proxy — do not also set it here
+# from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
@@ -45,12 +46,14 @@ allowed_origins = [
     'https://opencodingsociety.com',
 ]
 
-cors = CORS(
-   app,
-   supports_credentials=True,
-   origins=allowed_origins,
-   methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-)
+# CORS is handled entirely by the Nginx reverse proxy config.
+# Do not enable Flask-CORS here — it causes duplicate Access-Control-Allow-Origin headers.
+# cors = CORS(
+#    app,
+#    supports_credentials=True,
+#    origins=allowed_origins,
+#    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+# )
 
 
 # Admin Defaults
