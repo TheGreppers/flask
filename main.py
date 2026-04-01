@@ -33,6 +33,7 @@ from api.snapshot_proxy import snapshot_proxy
 from api.titanic import titanic_api  # Import the Titanic ML API
 from api.sfi_spec import sfi_spec_api  # Import the SFI spec search API
 from api.sfi_classifier import sfi_classifier_api  # Import the SFI ML classifier API
+from api.sfi_chat import sfi_chat_api  # Import the SFI chatbot API
 #from api.announcement import announcement_api ##temporary revert
 
 # database Initialization functions
@@ -98,6 +99,7 @@ app.register_blueprint(snapshot_proxy)  # Register the snapshot proxy API
 app.register_blueprint(titanic_api)  # Register the Titanic ML API
 app.register_blueprint(sfi_spec_api)  # Register the SFI spec search API
 app.register_blueprint(sfi_classifier_api)  # Register the SFI ML classifier API
+app.register_blueprint(sfi_chat_api)  # Register the SFI chatbot API
 # app.register_blueprint(announcement_api) ##temporary revert
 
 # Jokes file initialization
