@@ -41,5 +41,5 @@ ENV FLASK_ENV=production \
 # Expose application port
 EXPOSE 8423
 
-# Start Gunicorn server
-CMD ["gunicorn", "main:app"]
+# Create any missing DB tables, then start Gunicorn server
+CMD ["bash", "-c", "python -c 'from __init__ import app, db; from main import *; app.app_context().push(); db.create_all()' && gunicorn main:app"]
