@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_login import LoginManager
-# CORS is handled by Nginx reverse proxy — do not also set it here
-# from flask_cors import CORS
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
@@ -46,14 +45,15 @@ allowed_origins = [
     'https://opencodingsociety.com',
 ]
 
-# CORS is handled entirely by the Nginx reverse proxy config.
-# Do not enable Flask-CORS here — it causes duplicate Access-Control-Allow-Origin headers.
-# cors = CORS(
-#    app,
-#    supports_credentials=True,
-#    origins=allowed_origins,
-#    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-# )
+# On production, Nginx handles CORS. Locally there is no Nginx, so Flask-CORS
+# must add the headers directly. IS_PRODUCTION is set in the Docker/server environment.
+if not os.environ.get('IS_PRODUCTION'):
+    CORS(
+        app,
+        supports_credentials=True,
+        origins=allowed_origins,
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    )
 
 
 # Admin Defaults
