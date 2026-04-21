@@ -35,6 +35,7 @@ from api.sfi_spec import sfi_spec_api  # Import the SFI spec search API
 from api.sfi_classifier import sfi_classifier_api  # Import the SFI ML classifier API
 from api.sfi_chat import sfi_chat_api  # Import the SFI chatbot API
 from api.user_gear import user_gear_api  # Import the user gear tracking API
+from api.group import group_api as sfi_group_api  # SFI groups + permissions API
 #from api.announcement import announcement_api ##temporary revert
 
 # database Initialization functions
@@ -56,7 +57,8 @@ from model.leaderboard import ScoreCounterEvent, ElementaryLeaderboardEvent
 from model.sfi_spec import SfiSpec, initSfiSpecs
 from model.sfi_classifier import SfiClassifier, initSfiClassifier
 from model.user_gear import UserGear
-from hacks.jokes import initJokes 
+from model.group import SfiGroup, initSfiGroups
+from hacks.jokes import initJokes
 # from model.announcement import Announcement ##temporary revert
 
 # server only Views
@@ -103,11 +105,17 @@ app.register_blueprint(sfi_spec_api)  # Register the SFI spec search API
 app.register_blueprint(sfi_classifier_api)  # Register the SFI ML classifier API
 app.register_blueprint(sfi_chat_api)  # Register the SFI chatbot API
 app.register_blueprint(user_gear_api)  # Register the user gear tracking API
+app.register_blueprint(sfi_group_api)  # Register the SFI groups + permissions API
 # app.register_blueprint(announcement_api) ##temporary revert
 
 # Jokes file initialization
 with app.app_context():
+    db.create_all()  # idempotent — creates any newly defined tables (sfi_groups, sfi_user_groups, user_gear, ...)
     initJokes()
+    try:
+        initSfiGroups()  # ensure baseline groups exist (administrators, members) + admin membership
+    except Exception as _exc:  # noqa: BLE001
+        app.logger.warning(f'initSfiGroups skipped: {_exc}')
 
 # Tell Flask-Login the view function name of your login route
 login_manager.login_view = "login"
@@ -344,6 +352,7 @@ def generate_data():
     initPersonaUsers()
     initSfiSpecs()
     initSfiClassifier()
+    initSfiGroups()
 
 # Register the custom command group with the Flask application
 app.cli.add_command(custom_cli)
