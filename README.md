@@ -1,265 +1,174 @@
-# README
+# SFI Foundation Prototype Backend
 
-> This is a project to support AP Computer Science Principles (APCSP) as well as a UC articulated Data Structures course. It was crafted iteratively starting in 2020 to the present time.  The primary purposes are ...
+This repository contains the Flask API backend for the Greppers SFI Foundation capstone prototype. It supports the SFI frontend with specification search, machine-learning classification, chatbot responses, authentication, and user gear tracking.
 
-- Used as starter code for student projects for `AP CSP 1 and 2` and `Data Structures 1` curriculum.
-- Used to teach key principles in learning the Python Flask programming environment.
-- Used as a backend server to service API's in a frontend-to-backend pipeline. Review the `api` folder in the project for endpoints.
-- Contains a minimal frontend, mostly to support Administrative functionality using the `templates` folder and `Jinja2` to define UIs.
-- Contains SQL database code in the `model` folder to introduce concepts of persistent data and storage.  Perisistence folder is `instance/volumes` for generated SQLite3 db.
-- Contains capabilities for deployment and has been used with AWS, Ubuntu, Docker, docker-compose, and Nginx to `deploy a WSGI server`.
-- Contains APIs to support `user authentication and cookies`, a great deal of which was contributed by Aiden Wu a former student in CSP.  
+The prototype is meant to show how SFI Foundation's public standards and PDF resources could become easier to search, update, and personalize. It is not a production replacement for the official SFI Foundation website.
 
-## Flask Portfolio Starter
+## Backend Role
 
-Use this project to create a Flask Server.
+The Flask backend provides:
 
-- GitHub link: [flask](https://github.com/open-coding-society/flask), runtime link is published under the About on this same page.
-- `Use this as template` option is availble if you plan on making your instance of the repository.
-- `Fork` the repository if you plan to contribute though GitHub PRs.
+- SFI specification database import and API access.
+- Spec search, category, stats, create, edit, and delete endpoints.
+- Text-based ML classifier for matching part descriptions to SFI specs.
+- Gemini-backed chatbot endpoint for SFI spec questions.
+- User authentication and current-user lookup through the existing starter auth system.
+- Authenticated "My Gear" storage for user safety equipment.
 
-## The conventional way to get started
+## Important Files
 
-> Quick steps that can be used with MacOS, WSL Ubuntu, or Ubuntu; this uses Python 3.9 or later as a prerequisite.
+| Path | Purpose |
+| --- | --- |
+| `main.py` | Registers Flask blueprints, including all SFI APIs. |
+| `api/sfi_spec.py` | SFI spec list/search/CRUD/categories/detect/stats endpoints. |
+| `api/sfi_classifier.py` | ML text classifier endpoints. |
+| `api/sfi_chat.py` | Gemini-backed chatbot endpoint. |
+| `api/user_gear.py` | Authenticated user gear CRUD endpoints. |
+| `model/sfi_spec.py` | SQLAlchemy model for SFI specs and import from frontend JSON. |
+| `model/sfi_classifier.py` | TF-IDF plus LinearSVC classifier for part/spec prediction. |
+| `model/user_gear.py` | SQLAlchemy model for user equipment tracking. |
+| `__init__.py` | Flask app setup, CORS, environment config, and database configuration. |
 
-- Open a Terminal, clone a project and `cd` into the project directory.  Use a `different link` and name for `name` for clone to match your repo.
+## SFI API Endpoints
 
-```bash
-mkdir -p ~/openccs; cd ~/opencs
+Implemented endpoints:
 
-git clone https://github.com/open-coding-ocietyflask.git
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/sfi/specs` | List all specs, with optional `?category=` filter. |
+| `POST` | `/api/sfi/specs` | Create a new spec record. Currently not admin-protected. |
+| `GET` | `/api/sfi/specs/search?q=...` | Keyword search across spec number, product name, category, and subcategory. |
+| `GET` | `/api/sfi/specs/<id>` | Get one spec by ID. |
+| `PUT` | `/api/sfi/specs/<id>` | Update one spec by ID. Currently not admin-protected. |
+| `DELETE` | `/api/sfi/specs/<id>` | Delete one spec by ID. Currently not admin-protected. |
+| `GET` | `/api/sfi/categories` | Return distinct SFI spec categories. |
+| `GET` | `/api/sfi/stats` | Return total specs, categories, subcategories, and category counts. |
+| `POST` | `/api/sfi/classify` | Classify a free-text part description into likely SFI specs. |
+| `GET` | `/api/sfi/classifier/status` | Return classifier training/status metadata. |
+| `POST` | `/api/sfi/chat` | Send a chatbot message and receive a Gemini-generated response. |
+| `GET` | `/api/sfi/gear` | List current authenticated user's gear. |
+| `POST` | `/api/sfi/gear` | Add gear for the current authenticated user. |
+| `DELETE` | `/api/sfi/gear/<id>` | Delete one current-user gear item. |
 
-cd flask
+Partially implemented or prototype-only behavior:
+
+- `POST /api/sfi/detect` exists, but it is keyword-based. It is separate from the browser-side detector in the frontend.
+- Standalone admin/group endpoints expected by the frontend `/admin/` page are not implemented yet.
+
+## Data Flow
+
+The SFI spec source data lives in the frontend repo:
+
+```text
+../greppers/_data/sfi_specs.json
 ```
 
-- Install python dependencies for Flask, etc.
+`model/sfi_spec.py` imports that JSON into the backend database. `model/sfi_classifier.py` also trains from the same JSON file.
+
+Expected local repo layout:
+
+```text
+greppers/
+  greppers/   # frontend repo
+  flask/      # this backend repo
+```
+
+If the frontend repo is not beside this backend repo, SFI spec import and classifier training may fail unless the path logic is updated.
+
+## Local Setup
+
+Create and activate a Python virtual environment:
 
 ```bash
 python -m venv venv
 source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
-### Open project in VSCode
+Create a local `.env` file. At minimum, include auth defaults and Gemini settings if the chatbot should work:
 
-- Prepare VSCode and run
-  - From Terminal run VSCode
+```env
+DEFAULT_PASSWORD='password'
+ADMIN_USER='Admin Name'
+ADMIN_UID='admin'
+ADMIN_PASSWORD='password'
+ADMIN_PFP='default.png'
 
-  ```bash
-  code .
-  ```
+USER_NAME='User Name'
+USER_UID='user'
+USER_PASSWORD='password'
+USER_PFP='default.png'
 
-  - Open Setting: Ctrl-Shift P or Cmd-Shift
-    - Search Python: Select Interpreter.
-    - Match interpreter to `which python` from terminal.
-    - Shourd be ./venv/bin/python
+GEMINI_API_KEY='your-key-here'
+GEMINI_SERVER='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
+```
 
-  - From Extensions Marketplace install `SQLite3 Editor`
-    - Open and view SQL database file `instance/volumes/user_management.db`
+Initialize or refresh the database:
 
-  - Make a local `.env` file in root of project to contain your secret passwords
+```bash
+python scripts/db_init.py
+```
 
-  ```shell
-  # Port configuration
-  # FLASK_PORT=8001
-  # Admin user reset password 
-  DEFAULT_PASSWORD='123Qwerty!'
-  DEFAULT_PFP='default.png'
-  # Admin user defaults
-  ADMIN_USER='Thomas Edison'
-  ADMIN_UID='toby'
-  ADMIN_PASSWORD='123Toby!'
-  ADMIN_PFP='toby.png'
-  # Teacher user defaults
-  TEACHER_USER='Nikola Tesla'
-  TEACHER_UID='niko'
-  TEACHER_PASSWORD='123Niko!'
-  TEACHER_PFP='niko.png'
-  # Default user for testing 
-  USER_NAME='Grace Hopper'
-  USER_UID='hop'
-  USER_PASSWORD='123Hop!'
-  USER_PFP='hop.png'
-  # Convience user defaults
-  MY_NAME='John Mortensen'
-  MY_UID='jm1021'
-  MY_ROLE='admin'
-  # Obtain key, [Google AI Studio](https://aistudio.google.com/api-keys)
-  GEMINI_API_KEY=xxxxx
-  GEMINI_SERVER=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
-  # Obtain key, [Groq Console](https://console.groq.com/keys)
-  GROQ_API_KEY=xxxxx
-  GROQ_SERVER=https://api.groq.com/openai/v1/chat/completions
-  # GitHub Configuation
-  GITHUB_TOKEN=ghp_xxx
-  GITHUB_TARGET_TYPE=user  # Use 'organization' or 'user'
-  GITHUB_TARGET_NAME=Open-Coding-Society
-  # KASM Configuration (server is defaulted)
-  KASM_SERVER=https://kasm.opencodingsociety.com
-  KASM_API_KEY_SECRET=xxxx
-  KASM_API_KEY=xxx
-  # DB Configuration, AWS RDS
-  IS_PRODUCTION=false # false = LOCAL true = DEPLOYED
-  DB_USERNAME='admin'
-  DB_PASSWORD='xxxxx'
-  ```
+Run the backend:
 
-  - Make the database and init data.
-  
-  ```bash
-  ./scripts/db_init.py
-  ```
+```bash
+python main.py
+```
 
-  - Explore newly created SQL database
-    - Navigate too instance/volumes
-    - View/open `user_management.db`
-    - Loook at `users` table in viewer
+The expected local backend base URL is:
 
-  - Run the Project
-    - Select/open `main.py` in VSCode
-    - Start with Play button
-      - Play button sub option contains Debug
-    - Click on localhost:8087 in terminal to launch
-      - Output window will contain page to launch http://localhost:8423
-    - Login using your secrets from env
+```text
+http://localhost:8423
+```
 
-  - Basic API test
-    - [Jokes](http://localhost:8423/api/jokes/)
+## Frontend Integration
 
-### User Operations
-| Purpose | Correct Endpoint | What It Does |
-|---------|-----------------|--------------|
-| **Login** | `/api/authenticate` | Authenticates user & sets cookie |
-| **Get User** | `/api/id` | Gets current logged-in user |
-| **Signup** | `/api/user` | Creates new user account |
-| **Posts** | `/api/post/all` | Gets all social media posts |
-| **Create Post** | `/api/post` | Creates a new post |
-| **Gemini AI** | `/api/gemini` | Chat with AI assistant |
+The companion frontend expects the backend at:
 
-### MicroBlog Operations
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/microblog` | Create new post |
-| GET | `/api/microblog` | Get posts (with filters) |
-| PUT | `/api/microblog` | Update post |
-| DELETE | `/api/microblog` | Delete post |
+- Local: `http://localhost:8423`
+- Deployed: `https://greppers-be.opencodingsociety.com`
 
-**Query Parameters for GET:**
-- `?topicId=1` - Posts for specific topic
-- `?userId=123` - Posts by specific user  
-- `?search=flask` - Search content
-- `?limit=20` - Limit results
+The frontend pages that depend on this backend include:
 
-### MicroBlog Interactions
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/microblog/reply` | Add reply to post |
-| POST | `/api/microblog/reaction` | Add reaction (👍, ❤️, etc.) |
-| DELETE | `/api/microblog/reaction` | Remove reaction |
+- `/sfi-specs/` for specs, stats, classifier, and spec CRUD.
+- `/quiz/` for authenticated gear sync.
+- `/login/` and `/signup/` for auth.
+- Site-wide chatbot widget for `/api/sfi/chat`.
+- `/admin/`, although the required admin endpoints are currently missing.
 
-### Microblog Page Integration
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/microblog/page/<page_key>` | Get posts for specific page |
-| POST | `/api/microblog/topics/auto-create` | Auto-create topic for page |
-| GET | `/api/microblog/topics?pagePath=X` | Get topic by page path |
+CORS settings in `__init__.py` include local frontend ports and Open Coding Society domains. If testing from a new origin, update `allowed_origins`.
 
-## Idea
+## Known Gaps
 
-### Files and Directories in this Project
+- No implemented admin/group endpoints for the standalone frontend `/admin/` page.
+- Spec create, update, and delete endpoints are not currently restricted to admin users.
+- Gear API does not support pending, approved, rejected, owner metadata, reviewer notes, or all-user admin views.
+- Chatbot does not read PDFs or crawl the website. It only receives compact spec rows from the database.
+- No PDF extraction, summarization, vector search, or RAG layer exists yet.
+- `/api/sfi/detect` is keyword-based and separate from the frontend's TensorFlow.js image detector.
+- There are no focused automated tests for the SFI API endpoints yet.
 
-The key files and directories in this project are in these online articles.
+## Future Roadmap
 
-[Python/Flask](https://pages.opencodingsociety.com/python/flask)
+- Add admin-auth-protected SFI management endpoints.
+- Implement `/api/sfi/me`, `/api/sfi/users`, `/api/sfi/groups`, `/api/sfi/gear/pending`, and `/api/sfi/gear/all` or update the frontend admin page to use existing APIs.
+- Extend `UserGear` with status, source, owner/admin review fields, reviewer notes, and timestamps.
+- Add a PDF ingestion pipeline that downloads or reads SFI PDFs, extracts text, chunks/indexes content, and exposes summary/search endpoints.
+- Upgrade the chatbot to retrieve from specs, site pages, and PDF chunks before calling Gemini.
+- Add route/API tests for SFI specs, classifier, chat error handling, and gear CRUD.
 
-[Legacy - Flask Intro](https://pages.opencodingsociety.com/flask-overview)
+## Handoff Checklist
 
-### Implementation Summary
+Before continuing backend work:
 
-#### Oct 2025
-
-> Updates for 2025-2026 school year.  Focus on documentation and API functionality.
-
-- Work to make documentation materials useful.
-- Add gemini API's
-- Add microblog API's, social medai support
-
-#### July 2024
-
-> Updates for 2024 too 2025 school year.  Primary addition is a fully functional backend for JWT login system.
-
-- Full support for JWT cookies
-- The API's for CRUD methods
-- The model definition User Class and related tables
-- SQLite and RDS support
-- Minimal Server side UI in Jinja2
-
-#### July 2023
-
-> Updates for 2023 to 2024 school year.
-
-- Update README with File Descriptions (anatomy)
-- Add JWT and add security features using a SQLite user database
-- Add migrate.sh to support sqlite schema and data upgrade
-
-#### January 2023
-
-> This project focuses on being a Python backend server.  Intentions are to only have simple UIs an perhaps some Administrative UIs.
-
-#### September 2021
-
-> Basic UI elements were implemented showing server side Flask with Jinja 2 capabilities.
-
-- The Project entry point is main.py, this enables the Flask Web App and provides the capability to render templates (HTML files)
-- The main.py is the  Web Server Gateway Interface, essentially it contains an HTTP route and HTML file relationship.  The Python code constructs WSGI relationships for index, kangaroos, walruses, and hawkers.
-- The project structure contains many directories and files.  The template directory (containing HTML files) and static directory (containing JS files) are common standards for HTML coding.  Static files can be pictures and videos, in this project they are mostly javascript backgrounds.
-- WSGI templates: index.html, kangaroos.html, ... are aligned with routes in main.py.
-- Other templates support WSGI templates.  The base.html template contains common Head, Style, Body, and Script definitions.  WSGI templates often "include" or "extend" these templates.  This is a way to reuse code.
-- The VANTA javascript statics (backgrounds) are shown and defaulted in base.html (birds) but are block-replaced as needed in other templates (solar, net, ...)
-- The Bootstrap Navbar code is in navbar.html. The base.html code includes navbar.html.  The WSGI html files extend base.html files.  This is a process of management and correlation to optimize code management.  For instance, if the menu changes discovery of navbar.html is easy, one change reflects on all WSGI html files.
-- Jinja2 variables usage is to isolate data and allow redefinitions of attributes in templates.  Observe "{% set variable = %}" syntax for definition and "{{ variable }}" for reference.
-- The base.html uses a combination of Bootstrap grid styling and custom CSS styling.  Grid styling in observation with the "<Col-3>" markers.  A Bootstrap Grid has a width of 12, thus four "Col-3" markers could fit on a Grid row.
-- A key purpose of this project is to embed links to other content.  The "href=" definition embeds hyperlinks into the rendered HTML.  The base.html file shows usage of "href={{github}}", the "{{github}}" is a Jinja2 variable.  Jinja2 variables are pre-processed by Python, a variable swap with value, before being sent to the browser.
-
-## Database Management Workflow with Scripts
-
-If you are working with the database, follow the below procedure to safely interact with the remote DB while applying changes locally. Certain scripts require flask to be running while others don't, so follow the instructions that the scripts provide.
-
-Note, steps 1,2,3,5 are on your development (LOCAL) server. You need to update your .env on development server and be sure all PRs are completed, pulled, and tested before you start pushing to production.
-
-0. Be sure ADMIN_PASSWORD is set in .env.  You will need a venv for the python scripts.
-
-1. Initialize your local DB with clean data. For example, this would be good to see that a schema update works correctly.
-   ```bash
-   python scripts/db_init.py
-   ```
-
-2. Pull the database content from the remote DB onto your local machine. This allows you to work with real data and test that real data works with your local changes.
-   ```bash
-   python scripts/db_migrate-prod2sqlite.py
-   ```
-
-3. TEST TEST TEST! Make sure your changes work correctly with the local DB.
-
-4. Now go onto the remote DB and back up the db using `cp sqlite.db backups/sqlite_year-month-day.db` in the volumes directory of the flask directory on cockpit. Then, run `git pull` to ensure that flask has been updated with the latest code. Then, run `python scripts/db_init.py` again to ensure that the remote DB schema is up to date with the latest code.
-
-5. Once you are satisfied with your changes, push the local DB content to the remote DB. This requires authentication, so you need to replace the ADMIN_PASSWORD in the .env file of "flask" with the production admin password.
-   ```bash
-   python scripts/db_restore-sqlite2prod.py
-   ```
-
-### Condensed DB/Schema update simple steps
-*(a copy of what's above, just condensed)*
-
-1. Initialize local DB: `python scripts/db_init.py`
-
-2. Pull production data to local: `python scripts/db_migrate-prod2sqlite.py`
-
-3. Test your changes locally
-
-4. On production server (in cockpit):
-   - Backup DB in volumes directory: `cp sqlite.db backups/sqlite_year-month-day.db`
-   - Update code: `git pull`
-   - Update schema: `python scripts/db_init.py`
-
-5. Push local changes to production: `python scripts/db_restore-sqlite2prod.py` (Requires admin password from production in .env)
+- Confirm `../greppers/_data/sfi_specs.json` exists and is current.
+- Run `python scripts/db_init.py`.
+- Start the backend and test `GET /api/sfi/specs`.
+- Test `GET /api/sfi/classifier/status` to confirm the classifier trained.
+- Configure `GEMINI_API_KEY` before testing `POST /api/sfi/chat`.
+- Treat the `/admin/` frontend as unfinished until the backend admin endpoints and permission checks are added.
