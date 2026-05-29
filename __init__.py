@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_login import LoginManager
-from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
@@ -26,34 +25,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
-# Allowed servers for cross-origin resource sharing (CORS)
-# Static allowed origins for local development
-allowed_origins = [
-    'http://localhost:4500',
-    'http://127.0.0.1:4500',
-    'http://localhost:4599',
-    'http://127.0.0.1:4599',
-    'http://localhost:4600',
-    'http://127.0.0.1:4600',
-    'http://localhost:4000',
-    'http://127.0.0.1:4000',
-    'https://open-coding-society.github.io',
-    'https://pages.opencodingsociety.com',
-    'https://sfifoundation.opencodingsociety.com',
-    # Regex pattern to match any subdomain of opencodingsociety.com
-    r'https://.*\.opencodingsociety\.com',
-    'https://opencodingsociety.com',
-]
-
-# On production, Nginx handles CORS. Locally there is no Nginx, so Flask-CORS
-# must add the headers directly. IS_PRODUCTION is set in the Docker/server environment.
-if not os.environ.get('IS_PRODUCTION'):
-    CORS(
-        app,
-        supports_credentials=True,
-        origins=allowed_origins,
-        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    )
+# CORS is not handled by Flask. In production, nginx adds the
+# Access-Control-Allow-* headers; Flask-CORS has been removed so the app runs
+# without any cross-origin handling of its own.
 
 
 # Admin Defaults
