@@ -20,7 +20,6 @@ This file retrieves the following information:
 """
 
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 from flask_restful import Api, Resource
 import subprocess
 import platform
@@ -29,16 +28,6 @@ import os
 import re
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=[
-    "https://pages.opencodingsociety.com",
-    "http://localhost:4100",
-    "http://127.0.0.1:4100",
-    "http://localhost:4500",      # ← Jekyll default port
-    "http://127.0.0.1:4500",
-    "http://localhost:4200",      # ← common fallback
-    "http://127.0.0.1:4200",
-    "null",                       # ← for when the .ipynb is opened directly as a file
-])
 
 api = Api(app)
 
