@@ -36,6 +36,7 @@ from api.sfi_classifier import sfi_classifier_api  # Import the SFI ML classifie
 from api.sfi_chat import sfi_chat_api  # Import the SFI chatbot API
 from api.user_gear import user_gear_api  # Import the user gear tracking API
 from api.group import group_api as sfi_group_api  # SFI groups + permissions API
+from api.sfi_pdf_summary import sfi_pdf_summary_api  # Import the SFI PDF summary API
 #from api.announcement import announcement_api ##temporary revert
 
 # database Initialization functions
@@ -106,6 +107,7 @@ app.register_blueprint(sfi_classifier_api)  # Register the SFI ML classifier API
 app.register_blueprint(sfi_chat_api)  # Register the SFI chatbot API
 app.register_blueprint(user_gear_api)  # Register the user gear tracking API
 app.register_blueprint(sfi_group_api)  # Register the SFI groups + permissions API
+app.register_blueprint(sfi_pdf_summary_api)  # Register the SFI PDF summary API
 # app.register_blueprint(announcement_api) ##temporary revert
 
 # Jokes file initialization
