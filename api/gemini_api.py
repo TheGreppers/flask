@@ -109,9 +109,10 @@ class GeminiAPI:
             if not server:
                 return {'message': 'Gemini server not configured'}, 500
             
-            # Build the endpoint URL
-            endpoint = f"{server}?key={api_key}"
-            
+            # Pass the API key via header (never embed it in the URL, so it
+            # cannot leak into request logs or error details).
+            endpoint = server
+
             # Default prompt for citation analysis, can be overridden
             default_prompt = f"Please look at this text for correct academic citations, and recommend APA references for each area of concern"
             prompt = body.get('prompt', default_prompt)
@@ -129,25 +130,27 @@ class GeminiAPI:
             current_app.logger.info(f"User {current_user.uid} made a Gemini API request")
             
             try:
-                # Log the request details for debugging
-                current_app.logger.info(f"Making request to Gemini API: {endpoint}")
+                # Log without the endpoint/key (avoid leaking secrets to logs)
+                current_app.logger.info("Making request to Gemini API")
                 current_app.logger.debug(f"Payload: {payload}")
-                
-                # Make request to Gemini API
+
+                # Make request to Gemini API. The key is sent as a header so it
+                # never appears in any logged URL.
                 response = requests.post(
                     endpoint,
-                    headers={'Content-Type': 'application/json'},
+                    headers={
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': api_key,
+                    },
                     json=payload,
                     timeout=90  # 90 second timeout
                 )
-                
+
                 # Check if the request was successful
                 if response.status_code != 200:
                     error_details = {
                         'status_code': response.status_code,
                         'response_text': response.text,
-                        'endpoint': endpoint,
-                        'headers': dict(response.headers)
                     }
                     current_app.logger.error(f"Gemini API error: {error_details}")
                     
@@ -228,16 +231,18 @@ class GeminiAPI:
             if api_key and server:
                 try:
                     # Make a simple test request to check API availability
-                    test_endpoint = f"{server}?key={api_key}"
                     test_payload = {
                         "contents": [{
                             "parts": [{"text": "Hello"}]
                         }]
                     }
-                    
+
                     response = requests.post(
-                        test_endpoint,
-                        headers={'Content-Type': 'application/json'},
+                        server,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'x-goog-api-key': api_key,
+                        },
                         json=test_payload,
                         timeout=10
                     )
@@ -291,28 +296,30 @@ class GeminiAPI:
                 debug_info['error'] = 'Missing API configuration'
                 return debug_info, 500
             
-            # Build the endpoint URL
-            endpoint = f"{server}?key={api_key}"
-            debug_info['endpoint'] = endpoint
-            
+            # Send the key as a header (never embed it in the URL or echo it
+            # back in the debug response).
+            debug_info['endpoint'] = server
+
             # Simple test payload
             test_payload = {
                 "contents": [{
                     "parts": [{"text": "Test"}]
                 }]
             }
-            
+
             try:
                 response = requests.post(
-                    endpoint,
-                    headers={'Content-Type': 'application/json'},
+                    server,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': api_key,
+                    },
                     json=test_payload,
                     timeout=30
                 )
-                
+
                 debug_info['response'] = {
                     'status_code': response.status_code,
-                    'headers': dict(response.headers),
                     'content': response.text[:500] if response.text else None  # Limit content length
                 }
                 

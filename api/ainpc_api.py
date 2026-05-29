@@ -294,9 +294,9 @@ def call_gemini_api(system_prompt, user_message, history):
             current_app.logger.warning("Gemini API not configured, using fallback")
             return None
         
-        # Build the endpoint URL with API key
-        endpoint = f"{server}?key={api_key}"
-        
+        # Send the key as a header (never embed it in the URL).
+        endpoint = server
+
         # Build conversation context from history
         conversation_context = ""
         if history:
@@ -323,7 +323,10 @@ def call_gemini_api(system_prompt, user_message, history):
         # Make request to Gemini API (same approach as gemini_api.py)
         response = requests.post(
             endpoint,
-            headers={'Content-Type': 'application/json'},
+            headers={
+                'Content-Type': 'application/json',
+                'x-goog-api-key': api_key,
+            },
             json=payload,
             timeout=20  # 20 second timeout for NPC responses
         )

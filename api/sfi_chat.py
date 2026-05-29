@@ -101,13 +101,16 @@ class SfiChatAPI:
                 "parts": [{"text": user_message}]
             })
 
-            endpoint = f"{server}?key={api_key}"
+            # Send the key as a header so it never appears in a logged URL.
             payload = {"contents": contents}
 
             try:
                 resp = http_requests.post(
-                    endpoint,
-                    headers={"Content-Type": "application/json"},
+                    server,
+                    headers={
+                        "Content-Type": "application/json",
+                        "x-goog-api-key": api_key,
+                    },
                     json=payload,
                     timeout=30
                 )
